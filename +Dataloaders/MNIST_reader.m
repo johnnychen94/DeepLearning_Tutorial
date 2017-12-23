@@ -1,13 +1,17 @@
-% filename: MNIST_reader.m
 function [imgs,labels] = MNIST_reader(root,varargin)
   % Read MNIST dataset images and labels in one time
+  % see http://yann.lecun.com/exdb/mnist/ for file format details
   %
   % Return:
   %   imgs :  4-D numeric array [28,28,1,60000](train) or [28,28,1,10000](test)
   %   labels : categorical vector of labels
+  %
   % Parameters:
   %   root(Required): the root path folder of MNIST dataset
   %   train(Optional):  true(default) | false, load train dataset if train == true
+  %
+  % Copyright (C) 2017 Johnny Chen  
+  % Email: johnnychen94@hotmail.com
   p = inputParser();
   p.addParameter('train',true,@islogical);
   p.parse(varargin{:});
@@ -51,6 +55,10 @@ function imgs = image_reader(file)
   %
   % Pixels are organized row-wise. 
   % Pixel values are 0 to 255. 0 means background (white), 255 means foreground (black).
+  %
+  % Copyright (C) 2017 Johnny Chen  
+  % Email: johnnychen94@hotmail.com
+  
   try 
     fID = fopen(file,'rb');frewind(fID);
     
@@ -97,6 +105,9 @@ function labels = label_reader(file)
   % ........ 
   % xxxx     unsigned byte   ??               label
   % The labels values are 0 to 9.
+  %
+  % Copyright (C) 2017 Johnny Chen  
+  % Email: johnnychen94@hotmail.com
   
   
   try 
@@ -112,7 +123,7 @@ function labels = label_reader(file)
   % read image labels
   labels = cell(label_num,1);
   for i = 1:label_num
-%     char*1 is 1 unsigned byte
+    % char*1 is 1 unsigned byte
     labels{i}  = num2str(uint8(fread(fID,1,'char*1')));
   end
   catch e
