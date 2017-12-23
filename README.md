@@ -11,4 +11,4 @@
 1. Download [MNIST](http://yann.lecun.com/exdb/mnist/) Database, unzip it, and then copy the four files to `./Datasets/MNIST`;
 2. run `demo_MNIST_LeNet_Classification` in MATLAB
 
-See  [MNIST Classification notes with LeNet (Matlab)](https://johnnychen94.github.io/notes/deeplearning/MNIST_LeNet_Matlab.md) for more details.
+See  [MNIST Classification notes with LeNet (Matlab)](https://johnnychen94.github.io/tutorial/2017/12/23/MNIST_LeNet_Matlab.html) for more details.
