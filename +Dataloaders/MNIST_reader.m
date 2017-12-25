@@ -18,11 +18,11 @@ function [imgs,labels] = MNIST_reader(root,varargin)
   
   % get image and label filename
   if p.Results.train == true
-    img_file = dir(fullfile(root,'*train*image*'));
-    label_file = dir(fullfile(root,'*train*label*'));
+    img_file = dir(fullfile(root,'*train*image*ubyte'));
+    label_file = dir(fullfile(root,'*train*label*ubyte'));
   else
-    img_file = dir(fullfile(root,'*t10k*image*'));
-    label_file = dir(fullfile(root,'*t10k*label*'));
+    img_file = dir(fullfile(root,'*t10k*image*ubyte'));
+    label_file = dir(fullfile(root,'*t10k*label*ubyte'));
   end
   img_file = fullfile(img_file.folder,img_file.name);
   label_file = fullfile(label_file.folder,label_file.name);
@@ -59,6 +59,14 @@ function imgs = image_reader(file)
   % Copyright (C) 2017 Johnny Chen  
   % Email: johnnychen94@hotmail.com
   
+  cache_file = [file,'.mat'];
+  cache_variable = 'imgs'; % better not change
+  if isfile(cache_file)
+    imgs = load(cache_file,cache_variable);
+    imgs = imgs.imgs;
+    return;
+  end
+  
   try 
     fID = fopen(file,'rb');frewind(fID);
     
@@ -86,6 +94,7 @@ function imgs = image_reader(file)
     rethrow(e)
   end
   fclose(fID);
+  save(cache_file,cache_variable);
 end
 
 function labels = label_reader(file)
@@ -109,6 +118,13 @@ function labels = label_reader(file)
   % Copyright (C) 2017 Johnny Chen  
   % Email: johnnychen94@hotmail.com
   
+  cache_file = [file,'.mat'];
+  cache_variable = 'labels'; % better not change
+  if isfile(cache_file)
+    labels = load(cache_file,cache_variable);
+    labels = labels.labels;
+    return;
+  end
   
   try 
   fID = fopen(file,'rb');frewind(fID);
@@ -132,4 +148,5 @@ function labels = label_reader(file)
   end
   labels = categorical(labels);
   fclose(fID);
+  save(cache_file,cache_variable);
 end

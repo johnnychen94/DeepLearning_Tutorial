@@ -11,10 +11,12 @@
 % Email: johnnychen94@hotmail.com
 % 
 
+% Global settings
 s = rng('shuffle'); % set random seed
 use_pretrained_net = true; % true to use existed pretrained net
 data_path = fullfile('Datasets','MNIST'); % MNIST database file folder
 net_cache_path = fullfile('Trained_Networks','MNIST_LeNet.mat'); % 
+
 
 % load MNIST Dataset
 [train_imgs,train_labels] = Dataloaders.MNIST_reader(data_path,'train',true);
@@ -29,40 +31,46 @@ for i = 1:20
 end
 pause(0.1);
 
+if use_pretrained_net && isfile(net_cache_path)
+  % use pretrained network
+  trained_net = load(net_cache_path,'trained_net');
+  trained_net = trained_net.trained_net;
+else
+  % train from scratch
 
-% define network architecture
-C1 = [...
-      convolution2dLayer([5,5],6,'Name','C1');
-      reluLayer('Name','ReLu1');];
-S2 = maxPooling2dLayer(2,'Stride',2,'Name','S2');
-C3 = [...
-      convolution2dLayer([5,5],16,'Name','C3');
-      reluLayer('Name','ReLu3');];
-S4 = maxPooling2dLayer(2,'Stride',2,'Name','S4');
-C5 = [...
-      fullyConnectedLayer(120,'Name','C5');
-      reluLayer('Name','ReLu5');];
-F6 = [...
-      fullyConnectedLayer(84,'Name','F6');
-      reluLayer('Name','ReLu6');];
-Output = fullyConnectedLayer(10,'Name','Output');
-    
-layers = [...
-      imageInputLayer([28,28,1],'Name','Input');
-      C1;S2;C3;S4;C5;F6;
-      Output;
-      softmaxLayer('Name','Softmax');
-      classificationLayer('Name','Classification');
-      ];
+  % define network architecture
+  C1 = [...
+        convolution2dLayer([5,5],6,'Name','C1');
+        reluLayer('Name','ReLu1');];
+  S2 = maxPooling2dLayer(2,'Stride',2,'Name','S2');
+  C3 = [...
+        convolution2dLayer([5,5],16,'Name','C3');
+        reluLayer('Name','ReLu3');];
+  S4 = maxPooling2dLayer(2,'Stride',2,'Name','S4');
+  C5 = [...
+        fullyConnectedLayer(120,'Name','C5');
+        reluLayer('Name','ReLu5');];
+  F6 = [...
+        fullyConnectedLayer(84,'Name','F6');
+        reluLayer('Name','ReLu6');];
+  Output = fullyConnectedLayer(10,'Name','Output');
 
-% show network
-figure('Name','LeNet Graph'),
-lgraph = layerGraph(layers);
-plot(lgraph),title('LeNet Graph');
-pause(0.1);
+  layers = [...
+        imageInputLayer([28,28,1],'Name','Input');
+        C1;S2;C3;S4;C5;F6;
+        Output;
+        softmaxLayer('Name','Softmax');
+        classificationLayer('Name','Classification');
+        ];
 
-% set training options
-training_options = trainingOptions('sgdm',...
+  % show network
+  figure('Name','LeNet Graph'),
+  lgraph = layerGraph(layers);
+  plot(lgraph),title('LeNet Graph');
+  pause(0.1);
+
+  % set training options
+  training_options = trainingOptions('sgdm',...
                                             'Momentum',0.9,...
                                             'L2Regularization',1e-4,...
                                             'MaxEpoch',5,...
@@ -74,11 +82,7 @@ training_options = trainingOptions('sgdm',...
                                             'ValidationPatience',5,...
                                             'Plots','training-progress');
 
-% training network
-if use_pretrained_net && isfile(net_cache_path)
-  trained_net = load(net_cache_path,'trained_net');
-  trained_net = trained_net.trained_net;
-else
+  % training network
   % takes about 5 mins for CPU, 30 seconds for GPU
   trained_net = trainNetwork(train_imgs,train_labels,layers,training_options);
   save(net_cache_path,'trained_net');
