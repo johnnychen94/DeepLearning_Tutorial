@@ -1,49 +1,46 @@
 classdef SGDM < Optimizer.AbstractOptimizer
 % SGDM is stocastic gradient descent optimizer with momentum
     properties
-        LearnRate
         Momentum
-        GradientThreshold
     end
     
     methods
-        function optimizer = SGDM(LearnRate, Momentum, GradientThreshold)
+        function optimizer = SGDM(varargin)
         % SGDM returns a SGDM (stochastic gradient descent with momentum) optimizer
         %
         % Input:
-        %   LearnRate : (Required)
-        %   Momentum  : (Required)
-        %   GradientThreshold : (Required)
+        %   LearnRate : (Parameter)
+        %       Default: 1e-2
+        %   Momentum  : (Parameter)
+        %       Default: 0.9
+        %   GradientThreshold : (Parameter)
         %       threshold for gradient clipping
-            optimizer.LearnRate = LearnRate;
-            optimizer.Momentum = Momentum;
-            optimizer.GradientThreshold = GradientThreshold;
+        %       Default: Inf
+            [opt, unmatched] = parseInput(varargin{:});
+            optimizer = optimizer@Optimizer.AbstractOptimizer(unmatched{:});
+            optimizer.Momentum = opt.Momentum;
         end
         
-        function update(optimizer, layer, dLdParams)
-            params = layer.getLearnableParameters(); % dparams{i} is the gradient of params{i}
-            if isempty(params) % no parameter to update
-                return
-            end
-            
-            velocity = layer.cache();
-            if isempty(velocity) %  initialization for the first time
-                velocity = optimizer.initializeCache(dLdParams);
-            end
-            
-            for i = 1:length(params) % update each parameter of given layer
-                p = params{i};
-                velocity{i} = (1-optimizer.Momentum) * dLdParams{i} + optimizer.Momentum * velocity{i};
-                layer.(p) = layer.(p) - optimizer.LearnRate * gradientClip(velocity{i}, optimizer.GradientThreshold);
-            end
-            
-            layer.cache = velocity;
+        function [W, cache] = updateWeight(optimizer, W, dLdW, cache)
+        % updateWeight uses nesterov momentum method
+            cache_prev = cache;
+            cache = optimizer.Momentum * cache - optimizer.LearnRate * dLdW;
+            W = W - optimizer.Momentum * cache_prev + (1+optimizer.Momentum) * cache;
+        end
+        
+        function cache = initializeCache(~, dLdW)
+            cache = zeros(size(dLdW), 'like', dLdW);
         end
     end
 end
 
-function grad = gradientClip(grad, thres)
-% gradientClip helps avoid NAN gradient
-    grad = min(max(grad, -thres),thres);
-end
+function [opt, unmatched] = parseInput(varargin)
+    p = inputParser();
+    p.KeepUnmatched = true;
 
+    p.addParameter('Momentum', 0.9, @(x) isscalar(x) && x>0);
+
+    p.parse(varargin{:});
+    opt = p.Results;
+    unmatched = [fieldnames(p.Unmatched), struct2cell(p.Unmatched)]';
+end
