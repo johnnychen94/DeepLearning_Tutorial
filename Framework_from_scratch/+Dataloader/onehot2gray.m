@@ -16,9 +16,9 @@ function gray = onehot2gray(onehot)
 %       [0.1, 0.3, 0.9] --> 2.9
 %
 % See also: gray2onehot
-    if ~all(onehot >= 0 | onehot <= 1)
-        error("Wrong input: %s converts onehot encoding to gray encoding", mfilename);
-    end
+    onehot(onehot<0) = 0;
+    onehot(onehot>1) = 1;
+    
     [v,i] = max(onehot);
     gray = v + i - 1;
 end

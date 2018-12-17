@@ -11,6 +11,7 @@ function net = trainNetwork(net, X, Y, option)
 %       options for training network
     import Utils.* Utils.Training.*
     import Optimizer.initializeOptimizer
+    import Dataloader.onehot2gray
     
     % simple validation on inputs
     assert(iscell(net), 'Network should be cell of layers');
@@ -28,7 +29,7 @@ function net = trainNetwork(net, X, Y, option)
     MaxEpoch            = option.MaxEpoch;
     Verbose             = option.Verbose;
     VerboseFrequency    = option.VerboseFrequency;
-    UseGPU              = option.UseGPU; % TODO: GPU is slower than CPU in current version
+    UseGPU              = option.UseGPU;
     Shuffle             = option.Shuffle;
     
     optimizerOptions = struct(...
@@ -47,19 +48,26 @@ function net = trainNetwork(net, X, Y, option)
         Y = Y(:,I);
     end
     
-    if UseGPU
+    if UseGPU % TODO: GPU is slower than CPU in current version
         % move all data to GPU
+        warning("currently using GPU is slower than using CPU");
         X = gpuArray(X);
         Y = gpuArray(Y);
         net = gpuNetwork(net);
     end
     
     if Verbose
+       numSample = min(BatchSize, size(X,2));
+       preview_X = X(:, 1:numSample); % used for Verbose
+       preview_Y = Y(:, 1:numSample);
+       
+       isOnehot = size(preview_Y,1) ~= 1;
+       
        hfig = figure;
 
        subplot(1,2,1);
        hfig_loss = animatedline();
-       xlabel('iter');ylabel('Mean Squared Error');
+       xlabel('iter');ylabel('error');
        title('Gradient Descent Progress')
     end
     
@@ -70,7 +78,6 @@ function net = trainNetwork(net, X, Y, option)
         
         indices = generateBatchIndices(NumSample, BatchSize);
         numBatches = length(indices);
-        
         for i = 1: numBatches % mini-batch iteration
             cur_X = X(:, indices{i});
             cur_Y = Y(:, indices{i});
@@ -85,8 +92,13 @@ function net = trainNetwork(net, X, Y, option)
                 addpoints(hfig_loss, iter, loss);
 
                 figure(hfig);subplot(1,2,2);
-                plot(1:size(cur_Y,2),cur_Y,'ro',...
-                   1:size(cur_Y,2),Z{end},'b+');
+                if isOnehot
+                    plot(1:size(preview_Y,2),onehot2gray(preview_Y),'ro',...
+                       1:size(preview_Y,2),onehot2gray(predict(net,preview_X)),'b+');
+                else
+                    plot(1:size(preview_Y,2),preview_Y,'ro',...
+                       1:size(preview_Y,2),predict(net,preview_X),'b+');
+                end
                 xlabel('x');ylabel('y');title('prediction');
 
                 drawnow;
