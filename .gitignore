@@ -1,3 +1,5 @@
 .DS_Store
-/Datasets/*
-/Trained_Networks/*
+NNToolbox_example/Datasets/*
+NNToolbox_example/Trained_Networks/*
+data
+*.m~
