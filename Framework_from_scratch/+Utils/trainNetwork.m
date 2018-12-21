@@ -48,9 +48,8 @@ function net = trainNetwork(net, X, Y, option)
         Y = Y(:,I);
     end
     
-    if UseGPU % TODO: GPU is slower than CPU in current version
+    if UseGPU
         % move all data to GPU
-        warning("currently using GPU is slower than using CPU");
         X = gpuArray(X);
         Y = gpuArray(Y);
         net = gpuNetwork(net);
@@ -89,15 +88,17 @@ function net = trainNetwork(net, X, Y, option)
             
             % show training progress
             if Verbose && mod(iter, VerboseFrequency) == 0
-                addpoints(hfig_loss, iter, loss);
-
+                preview_Y_hat = predict(net,preview_X);
+                
+                addpoints(hfig_loss, iter, loss);           
+                
                 figure(hfig);subplot(1,2,2);
                 if isOnehot
                     plot(1:size(preview_Y,2),onehot2gray(preview_Y),'ro',...
-                       1:size(preview_Y,2),onehot2gray(predict(net,preview_X)),'b+');
+                       1:size(preview_Y,2),onehot2gray(preview_Y_hat),'b+');
                 else
                     plot(1:size(preview_Y,2),preview_Y,'ro',...
-                       1:size(preview_Y,2),predict(net,preview_X),'b+');
+                       1:size(preview_Y,2),preview_Y_hat,'b+');
                 end
                 xlabel('x');ylabel('y');title('prediction');
 

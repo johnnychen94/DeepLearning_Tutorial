@@ -30,10 +30,7 @@ classdef FullyConnectedLayer < Layer.AbstractLayer
             
             % sum the gradients over the all samples, division by
             % numSample is already called in the loss function layer
-            dLdWeight = zeros(size(layer.Weight), 'like',layer.Weight);
-            for i = 1: size(X,2) % TODO: check if this  for-loop can be accelerated
-                dLdWeight = dLdWeight + X(:,i) * dLdZ(:,i)'; % slicing is extrmely slow for gpuArray
-            end
+            dLdWeight = X * dLdZ';
             
             dLdBias = sum(dLdZ, 2);
         end

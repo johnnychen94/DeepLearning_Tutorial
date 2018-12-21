@@ -1,5 +1,5 @@
-classdef MSERegressionLayer < Layer.AbstractLossLayer
-% MSERegressionLayer returns a loss layer with Mean-Squared-Error
+classdef MeanSquaredErrorLayer < Layer.AbstractLossLayer
+% MeanSquaredErrorLayer returns a loss layer with Mean-Squared-Error
     methods
         function loss = forwardLoss(~,Y,T)
             assert(ismatrix(Y) && ismatrix(T), "%s accepts matrix input only", mfilename)
